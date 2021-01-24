@@ -23,6 +23,17 @@ urlpatterns = [
     path('register/', views.Register, name='register'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('wojna_30_letnia/', views.wojna_trzydziestoletnia, name='wojna30letnia'),
+    path('wojna_30_letnia/new', views.WojnaTrzydziestoletniaCreate.as_view(), name='wojna30letniaNew'), 
+    path('wojna_30_letnia/edit/<pk>', views.WojnaTrzydziestoletniaUpdate.as_view(), name='wojna30letniaEdit'),  
+    path('powstanie_styczniowe/', views.powstanie_styczniowe, name='powstanieStyczniowe'),
+    path('powstanie_styczniowe/new', views.PowstanieStycznioweCreate.as_view(), name='powstanieStycznioweNew'),
+    path('powstanie_styczniowe/edit/<pk>', views.PowstanieStycznioweUpdate.as_view(), name='powstanieStycznioweEdit'),
+    path('powstanie_listopadowe/', views.powstanie_listopadowe, name='powstanieListopadowe'),
+    path('powstanie_listopadowe/new', views.PowstanieListopadoweCreate.as_view(), name='powstanieListopadoweNew'),
+    path('powstanie_listopadowe/edit/<pk>', views.PowstanieListopadoweUpdate.as_view(), name='powstanieListopadoweEdit'),
+    path('rewolucja_amerykanska/', views.rewolucja_amerykanska, name='rewolucjaAmerykanska'),
+    path('rewolucja_amerykanska/new', views.RewolucjaAmerykanskaCreate.as_view(), name='rewolucjaAmerykanskaNew'),
+    path('rewolucja_amerykanska/edit/<pk>', views.RewolucjaAmerykanskaUpdate.as_view(), name='rewolucjaAmerykanskaEdit'),
     path('geojson/<table>/', views.geojson),
     
 ]
