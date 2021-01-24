@@ -4,7 +4,7 @@
 
 {% block sidebar %}
 {% if user.is_superuser %}
-<a class="btn btn-outline-success" href="{% url 'wojna30letniaNew' %}" role="button" style="margin: 0 5px" id="add"> Dodaj </a>
+<a class="btn btn-outline-success" href="{% url 'powstanieListopadoweNew' %}" role="button" style="margin: 0 5px" id="add"> Dodaj </a>
 {% endif %}
 {% endblock %}
 
@@ -78,27 +78,27 @@
     {% endblock %}
     {% block scripts %}
 
-    var osm = new ol.layer.Tile({  //Warstwa OSM mapy
+    var osm = new ol.layer.Tile({
     source: new ol.source.OSM(),
     title: 'OpenStreetMap',
     baseLayer: true,
     });
 
-    var stamen = new ol.layer.Tile({ //Warstwa OSM Stamen mapy
+    var stamen = new ol.layer.Tile({
     source: new ol.source.Stamen({ layer: 'toner' }),
     title: 'Stamen Toner',
     baseLayer: true,
     visible: false
     });
 
-    var style = function(feature, resolution){ //Kolor zależny od typ w warstwie wektorowej
+    var style = function(feature, resolution){
     const type = feature.get("typ");
     var color;
     if (type==='bitwa'){ color = 'red' }
     else if (type==='wydarzenie'){ color='blue' }
-    else { color='green' }
+    else { color='yellow' }
 
-    return new ol.style.Style({ //Styl warstwy wektorowej
+    return new ol.style.Style({
     image: new ol.style.Circle({
     fill: new ol.style.Fill({ color: color}),
     stroke: new ol.style.Stroke ({color: 'white', width:1 }),
@@ -107,33 +107,33 @@
     })
     };
 
-    var source = new ol.source.Vector({ //źrodło warstwy wektorowej
+    var source = new ol.source.Vector({
     format: new ol.format.GeoJSON(),
-    url: '/geojson/wojna_trzydziestoletnia/'
+    url: '/geojson/powstanie_listopadowe/'
     })
 
-    var wojna_trzydziestoletnia = new ol.layer.Vector({ //zdefiniowanie warstwa wektorowa w Open Layers
+    var powstanie_listopadowe = new ol.layer.Vector({
     source: source,
-    title:'Wojna Trzydziestoletnia',
+    title:'Powstanie Listopadowe',
     style: style,
-    name: 'wojna_trzydziestoletnia',
+    name: 'powstanie_listopadowe',
     });
 
-    var view = new ol.View({ //zdefiniowanie początkowego widoku mapy
+    var view = new ol.View({
     center: ol.proj.fromLonLat([10.88, 50.89]),
     zoom: 6
     })
 
-    var map = new ol.Map({ //zdefiniowanie mapy z opcjami
+    var map = new ol.Map({
     target: 'map',
-    layers: [osm, stamen, wojna_trzydziestoletnia],
+    layers: [osm, stamen, powstanie_listopadowe],
     view: view
     });
 
-    var legend = new ol.control.LayerSwitcher(); //Dodanie legendy do mapy
+    var legend = new ol.control.LayerSwitcher();
     map.addControl (legend);
 
-    var style_select = function(feature, resolution){ //Zdefiniowanie stylu zaznaczonego punktu
+    var style_select = function(feature, resolution){
     return new ol.style.Style({
     image: new ol.style.Circle({
     fill: new ol.style.Fill({ color: 'green'}),
@@ -143,7 +143,7 @@
     })
     };
 
-    var select = new ol.interaction.Select({ //Zdefiniowanie interakcji select
+    var select = new ol.interaction.Select({
     style: style_select,
     });
 
@@ -171,11 +171,11 @@
     // Oraz wyświetlenie administratorowi przycisków do usunięcia lub edycji zaznaczonego punktu
 
     selectedFeatures.on(['add', 'remove'], function () {
-        var names = selectedFeatures.getArray().map(function (feature) {
-            return feature.get("pk");
-        });
-        if (names.length > 0) {
-        //Zaznaczenie w panelu bocznym zdarzenia do którego się odnosi punkt
+    var names = selectedFeatures.getArray().map(function (feature) {
+    return feature.get("pk");
+    });
+    if (names.length > 0) {
+    //Zaznaczenie w panelu bocznym zdarzenia do którego się odnosi punkt
     accord = document.getElementById("accord" + names[0]);
     card = document.getElementById("card" + names[0]);
     accord_class = accord.className;
@@ -188,16 +188,16 @@
     edit_button.innerHTML = "Edytuj";
     {% for element in zdarzenie %}
     if ({{element.pk}} == names[0]){
-        edit_button.href = "{% url 'wojna30letniaEdit' element.pk %}";
+    edit_button.href = "{% url 'powstanieListopadoweEdit' element.pk %}";
     }
     {% endfor %}
 
     edit_button.className = "btn btn-outline-success";
     navigation.insertBefore(edit_button, add_button);
     } else {
-        accord.className = accord_class;
-        card.className = card_class;
-        edit_button = navigation.removeChild(edit_button)
+    accord.className = accord_class;
+    card.className = card_class;
+    edit_button = navigation.removeChild(edit_button)
     }
     });
 
@@ -213,6 +213,7 @@
     duration: 2000,
     });
     });
+
     }
 
     {% endfor %}
