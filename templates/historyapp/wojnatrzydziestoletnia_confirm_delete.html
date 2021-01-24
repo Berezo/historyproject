@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<div role="main" class="container bg-primary text-light" style="padding-top:80px">
+    <div class="col">
+        <h1>Szczegóły zdarzenia {{ object }}</h1>
+        <p>
+            Okres historyczny: Wojna trzydziestoletnia
+            <br>
+            {% if object.okres is not NULL %}
+            Data przybliżona: {{ object.okres }}
+            {% else %}
+            Data: {{ object.data }}
+            {% endif %}
+            <br>
+            {% if object.str_kon_1 is not NULL %}
+            Strona konfliktu: {{ object.str_kon_1 }}
+            <br>
+            {% endif %}
+            {% if object.dowod_1 is not NULL %}
+            Dowódca: {{ object.dowod_1 }}
+            <br>
+            {% endif %}
+            {% if object.str_kon_2 is not NULL %}
+            Druga strona konfliktu: {{ object.str_kon_2 }}
+            <br>
+            {% endif %}
+            {% if object.dowod_2 is not NULL %}
+            Dowódca: {{ object.dowod_2 }}
+            <br>
+            {% endif %}
+            {% if object.zwyciestwo is not NULL %}
+            Zwyciestwo: {{ object.zwyciestwo }}
+            <br>
+            {% endif %}
+            Opis: {{ object.opis }}
+            <br>
+        </p>
+        <form method="post">
+            {% csrf_token %}
+            <h4>Czy na pewno usunąć zdarzenie {{ object }}? </h4>
+            <input type="submit" value="Usuń" class="btn btn-danger" />
+        </form>
+
+    </div>
+</div>
+{% endblock %}

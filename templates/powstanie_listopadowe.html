@@ -1,0 +1,209 @@
+﻿{% extends 'base.html' %}
+{% block head %}
+{% endblock %}
+
+{% block sidebar %}
+{% if user.is_superuser %}
+<a class="btn btn-outline-success" href="{% url 'powstanieListopadoweNew' %}" role="button" style="margin: 0 5px" id="add"> Dodaj </a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row " style="padding-top:30px">
+    <div class="col-8 no-gutters" style="padding: 0">
+        <div id="map"></div>
+    </div>
+    <div class="overflow-auto col-4 no-gutters" style="max-height: 870px; max-width: 100%; padding: 0">
+        <div class="accordion" id="accordionExample">
+            {% for element in zdarzenie %}
+            <div class="accordion-item">
+
+                <h2 class="accordion-header" id="heading{{ element.ogc_fid }}">
+                    {% if element.typ == "bitwa" %}
+                    <button class="accordion-button collapsed text-white bg-danger" id="accord{{ element.ogc_fid }}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ element.ogc_fid }}" aria-expanded="true" aria-controls="collapse{{ element.ogc_fid }}">
+                        {{ element.nazwa }}
+                    </button>
+                    {% else %}
+                    <button class="accordion-button collapsed text-white bg-primary" id="accord{{ element.ogc_fid }}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ element.ogc_fid }}" aria-expanded="true" aria-controls="collapse{{ element.ogc_fid }}">
+                        {{ element.nazwa }}
+                    </button>
+                    {% endif %}
+
+                </h2>
+                <div id="collapse{{ element.ogc_fid }}" class="accordion-collapse collapse " aria-labelledby="heading{{ element.ogc_fid }}" data-bs-parent="#accordionExample">
+                    {% if element.typ == "bitwa" %}
+                    <div class="accordion-body bg-danger text-white" id="card{{ element.ogc_fid }}">
+                        {% else %}
+                        <div class="accordion-body bg-primary text-white" id="card{{ element.ogc_fid }}">
+                            {% endif %}
+                            {% if element.okres is not NULL %}
+                            <strong> {{ element.okres }} </strong>
+                            {% else %}
+                            <strong> {{ element.data }} </strong>
+                            {% endif %}
+                            <br>
+                            {% if element.str_kon_1 is not NULL %}
+                            Strona konfliktu: {{ element.str_kon_1 }}
+                            <br>
+                            {% endif %}
+                            {% if element.dowod_1 is not NULL %}
+                            Dowódca: {{ element.dowod_1 }}
+                            <br>
+                            {% endif %}
+                            {% if element.str_kon_2 is not NULL %}
+                            Druga strona konfliktu: {{ element.str_kon_2 }}
+                            <br>
+                            {% endif %}
+                            {% if element.dowod_2 is not NULL %}
+                            Dowódca: {{ element.dowod_2 }}
+                            <br>
+                            {% endif %}
+                            {% if element.zwyciestwo is not NULL %}
+                            Zwyciestwo: {{ element.zwyciestwo }}
+                            <br>
+                            {% endif %}
+                            {{ element.opis }}
+                            <br>
+                            {% if element.geometry != NULL %}
+                            <button type="button" class="btn btn-light" id="pan-to-{{ element.ogc_fid }}">Przybliż</button> </h5>
+                            {% endif %}
+                            {% if user.is_superuser %}
+                            <a href="{% url 'powstanieListopadoweEdit' element.pk %}" class="btn btn-warning">Edytuj</a>
+                            <a href="{% url 'powstanieListopadoweDel' element.pk %}" class="btn btn-dark">Usuń</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+        </div>
+    </div>
+</div>
+    {% endblock %}
+    {% block scripts %}
+
+    var osm = new ol.layer.Tile({
+    source: new ol.source.OSM(),
+    title: 'OpenStreetMap',
+    baseLayer: true,
+    });
+
+    var stamen = new ol.layer.Tile({
+    source: new ol.source.Stamen({ layer: 'toner' }),
+    title: 'Stamen Toner',
+    baseLayer: true,
+    visible: false
+    });
+
+    var style = function(feature, resolution){
+    const type = feature.get("typ");
+    var color;
+    if (type==='bitwa'){ color = 'red' }
+    else if (type==='wydarzenie'){ color='blue' }
+    else { color='yellow' }
+
+    return new ol.style.Style({
+    image: new ol.style.Circle({
+    fill: new ol.style.Fill({ color: color}),
+    stroke: new ol.style.Stroke ({color: 'white', width:1 }),
+    radius: 5
+    })
+    })
+    };
+
+    var source = new ol.source.Vector({
+    format: new ol.format.GeoJSON(),
+    url: '/geojson/powstanie_listopadowe/'
+    })
+
+    var powstanie_listopadowe = new ol.layer.Vector({
+    source: source,
+    title:'Powstanie Listopadowe',
+    style: style,
+    name: 'powstanie_listopadowe',
+    });
+
+    var view = new ol.View({
+    center: ol.proj.fromLonLat([21.83, 51.56]),
+    zoom: 7,
+    })
+
+    var map = new ol.Map({
+    target: 'map',
+    layers: [osm, stamen, powstanie_listopadowe],
+    view: view
+    });
+
+    var legend = new ol.control.LayerSwitcher();
+    map.addControl (legend);
+
+    var style_select = function(feature, resolution){
+    return new ol.style.Style({
+    image: new ol.style.Circle({
+    fill: new ol.style.Fill({ color: 'green'}),
+    stroke: new ol.style.Stroke ({color: 'white', width:1 }),
+    radius: 5
+    })
+    })
+    };
+
+    var select = new ol.interaction.Select({
+    style: style_select,
+    });
+
+    map.addInteraction(select);
+
+    var selectedFeatures = select.getFeatures();
+
+    var accord_class = null;
+    var card_class = null;
+    var accord_class_select = "accordion-button collapsed text-white bg-success";
+    var card_class_select = "accordion-body collapsed text-white bg-success";
+
+    var card = null;
+
+    function onClick(id, callback) {
+    document.getElementById(id).addEventListener('click', callback);
+    }
+
+    // Zaznaczenie punktu na mapie powoduje zmiane jego koloru na mapie,
+    // Zaznaczenie w panelu bocznym zdarzenia do którego się odnosi punkt
+
+    selectedFeatures.on(['add', 'remove'], function () {
+    var names = selectedFeatures.getArray().map(function (feature) {
+    return feature.get("pk");
+    });
+    if (names.length > 0) {
+    //Zaznaczenie w panelu bocznym zdarzenia do którego się odnosi punkt
+    accord = document.getElementById("accord" + names[0]);
+    card = document.getElementById("card" + names[0]);
+    accord_class = accord.className;
+    card_class = card.className;
+    accord.className = accord_class_select;
+    card.className = card_class_select;
+
+    } else {
+    accord.className = accord_class;
+    card.className = card_class;
+    }
+    });
+
+    var geom_list = []
+    var id_click_list = []
+
+    {% for element in zdarzenie %}
+    if ("{{ element.geometry.x }}".replace(",",".") !== ""){
+    onClick('pan-to-' + '{{ element.ogc_fid }}', function () {
+    view.animate({
+    center: ["{{ element.geometry.x }}".replace(",","."), "{{ element.geometry.y }}".replace(",",".")],
+    zoom: 12,
+    duration: 2000,
+    });
+    });
+
+    }
+
+    {% endfor %}
+
+    {% endblock %}
